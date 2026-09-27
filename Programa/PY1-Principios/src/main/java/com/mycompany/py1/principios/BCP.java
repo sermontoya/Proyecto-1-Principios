@@ -1,4 +1,4 @@
-package com.mycompany.tarea.principios;
+package com.mycompany.py1.principios;
 
 /**
  *

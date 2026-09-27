@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package com.mycompany.tarea.principios;
+package com.mycompany.py1.principios;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -200,7 +200,6 @@ public class Principal extends javax.swing.JFrame {
         jButton5 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(1280, 720));
         setResizable(false);
 
         jTable1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
