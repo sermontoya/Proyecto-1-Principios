@@ -471,7 +471,7 @@ public class Principal extends javax.swing.JFrame {
         actualizarTablaMemoria();
 
         cpu = new CPU();
-        bcp = new BCP(1, 0, "LISTO", "");
+        bcp = new BCP(1, 0, "LISTO", "", 0, 0, 1);
         actualizarTablaRegistros();
 
         jButton2.setEnabled(true);
