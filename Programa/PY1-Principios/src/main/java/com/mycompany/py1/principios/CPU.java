@@ -11,6 +11,8 @@ import java.util.Arrays;
  * @author sermo
  */
 public class CPU {
+    private static int cantCPUs = 1; // Número de CPUs disponible
+    private int id = cantCPUs++; // Identificador único de la CPU
     private int ax;
     private int bx;
     private int cx;
@@ -336,6 +338,9 @@ public class CPU {
                 return 0; 
         }
     }
+    public int getPc() { return pc; }
+    public String getInstructionRegister() { return InstructionRegister; }
+    public int getId() { return id; }
  
     // Reinicia los registros y el acumulador a 0
     public void reiniciar() {

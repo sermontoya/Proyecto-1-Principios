@@ -10,11 +10,13 @@ package com.mycompany.py1.principios;
  */
 public class Posicion {
     private String valor;
-    private String zona;
+    private String zona; // Si es Sistema Operativo o Usuario
+    private String proposito; // Que hay en la posición de memoria (Si es del BCP, lista de trabajo, etc.)
 
-    public Posicion(String valor, String zona) {
+    public Posicion(String valor, String zona, String proposito) {
         this.valor = valor;
         this.zona = zona;
+        this.proposito = proposito;
     }
 
     public String getValor() {
@@ -25,8 +27,16 @@ public class Posicion {
         return zona;
     }
 
+    public String getProposito() {
+        return proposito;
+    }
     public void setValor(String valor) {
         this.valor = valor;
     }
-    
+    public void setZona(String zona) {
+        this.zona = zona;
+    }
+    public void setProposito(String proposito) {
+        this.proposito = proposito;
+    }
 }

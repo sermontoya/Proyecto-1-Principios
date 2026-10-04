@@ -1,6 +1,7 @@
 package com.mycompany.py1.principios;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Stack;
 
 /**
@@ -23,6 +24,7 @@ public class BCP {
     private Stack<String> pila;
     private LocalDateTime tiempoInicio;
     private long tiempoEjecucion;
+    private ArrayList<String> archivos;
     private int inicio;
     private int tamano;
     private int prioridad;
@@ -64,6 +66,9 @@ public class BCP {
         return siguiente;
     }
 
+    public ArrayList<String> getArchivos() {
+        return archivos;
+    }
     public void setSiguiente(BCP siguiente) {
         this.siguiente = siguiente;
     }
@@ -154,6 +159,10 @@ public class BCP {
         return pila.pop();
     }
 
+    public Stack<String> getPila() {
+        return pila;
+    }
+
     public LocalDateTime getTiempoInicio() {
         return tiempoInicio;
     }
@@ -166,6 +175,13 @@ public class BCP {
         this.tiempoEjecucion++;
     }
 
+    public void setTiempoEjecucion(long tiempoEjecucion) {
+        this.tiempoEjecucion = tiempoEjecucion;
+    }
+
+    public void setTiempoInicio(LocalDateTime tiempoInicio) {
+        this.tiempoInicio = tiempoInicio;
+    }
     public void inicioProceso() {
         this.tiempoInicio = LocalDateTime.now();
     }
