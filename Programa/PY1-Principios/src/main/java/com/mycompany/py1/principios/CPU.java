@@ -4,7 +4,7 @@
  */
 package com.mycompany.py1.principios;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  *
@@ -16,37 +16,57 @@ public class CPU {
     private int cx;
     private int dx;
     private int accumulator;
+    private int pc;
     private String InstructionRegister;
+    private Memoria memoria;
+    private boolean flag;
 
-    public CPU() {
+    public CPU(Memoria memoria) {
+        this.memoria = memoria;
         this.ax = 0;
         this.bx = 0;
         this.cx = 0;
         this.dx = 0;
         this.accumulator = 0;
+        this.pc = 0;
         this.InstructionRegister = "";
 
     }
 
-    public void ejecutarPrograma(ArrayList<String> instrucciones) {
-        for (String instruccion : instrucciones) {
-            InstructionRegister = instruccion;
-            ejecutarInstruccion(instruccion);
+    public void ejecutarPrograma( BCP bcp) {
+        this.pc = bcp.getPc();
+        int inicio = bcp.getInicio();
+        int tamano = bcp.getTamano();
+        while (pc < inicio + tamano) {
+            String instruccion = memoria.leerMemoria(pc);
+            ejecutarInstruccion(instruccion, bcp);
+            pc++;
+            bcp.setPc(pc);
             
         }
+
     }
     
     // revisa la instrucción y ejecuta lo que indica
-    public void ejecutarInstruccion(String instruccion) {
+    public void ejecutarInstruccion(String instruccion, BCP bcp) {
         this.InstructionRegister = instruccion;
         String normalizada = instruccion.trim().toUpperCase();
         String[] partes = normalizada.split("[\\s,]+"); //formato de instruccion
         String operacion = partes[0];
-        String registro = partes[1];
-        int valor = 0;
-        if(partes.length > 2) {
-            valor = Integer.parseInt(partes[2]);
+        String registro = "";
+        String[] params;
+        String valor = "";
+        if (operacion.equals("PARAM")) {
+                params = Arrays.copyOfRange(partes, 1, partes.length);
         }
+        else if (partes.length > 1) {
+            registro = partes[1];
+            if (partes.length == 3) {
+                valor = partes[2];
+            }
+        }
+        
+        
         switch (operacion) {
             case "LOAD":
                 cargarRegistro(registro);
@@ -55,13 +75,67 @@ public class CPU {
                 almacenarRegistro(registro);
                 break;
             case "MOV":
-                moverValor(registro, valor);
+                switch(valor) {
+                    case "AX":
+                        moverValor(registro, String.valueOf(getAx()));
+                        break;
+                    case "BX":
+                        moverValor(registro, String.valueOf(getBx()));
+                        break;
+                    case "CX":
+                        moverValor(registro, String.valueOf(getCx()));
+                        break;
+                    case "DX":
+                        moverValor(registro, String.valueOf(getDx()));
+                        break;
+                    default:
+                        moverValor(registro, valor);
+                        break;
+                }
                 break;
             case "ADD":
                 sumarRegistro(registro);
                 break;
             case "SUB":
                 restarRegistro(registro);
+                break;
+            case "INC":
+                if (!registro.equals("")){
+                    incrementarRegistro(registro);
+                } else{
+                    //si no se indica registro, incrementa el acumulador
+                    accumulator++;
+                }
+                break;
+            case "DEC":
+                if (!registro.equals("")){
+                    decrementarRegistro(registro);
+                } else{
+                    //si no se indica registro, decrementa el acumulador
+                    accumulator--;
+                }
+                break;
+            case "SWAP":
+                intercambiarRegistros(registro, valor);
+                break;
+            case "INT":
+                // Manejar interrupciones según el valor de registro
+                break;
+            case "JMP":
+                manejarSalto(valor);
+                break;
+            case "CMP":
+                manejarComparacion(registro, valor);
+                break;
+            case "JE":
+            case "JNE": 
+                manejarSaltoCondicional(operacion, valor);
+                break;
+            case "PUSH":
+                pushAlStack(registro, bcp);
+                break;
+            case "POP":
+                popDelStack(registro, bcp);
                 break;
             default:
                 break;
@@ -107,19 +181,19 @@ public class CPU {
         }
     }
     // si es mov, mueve el valor indicado al registro indicado
-    private void moverValor(String registro, int valor) {
+    private void moverValor(String registro, String valor) {
         switch (registro) {
             case "AX":
-                ax = valor;
+                ax = Integer.parseInt(valor);
                 break;
             case "BX":
-                bx = valor;
+                bx = Integer.parseInt(valor);
                 break;
             case "CX":
-                cx = valor;
+                cx = Integer.parseInt(valor);
                 break;
             case "DX":
-                dx = valor;
+                dx = Integer.parseInt(valor);
                 break;
             default:
                 break;
@@ -139,6 +213,44 @@ public class CPU {
                 break;
             case "DX":
                 accumulator += dx;
+                break;
+            default:
+                break;
+        }
+    }
+    // si es inc registro, incrementa el valor del registro indicado en 1
+    private void incrementarRegistro(String registro) {
+        switch (registro) {
+            case "AX":
+                ax++;
+                break;
+            case "BX":
+                bx++;
+                break;
+            case "CX":
+                cx++;
+                break;
+            case "DX":
+                dx++;
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void decrementarRegistro(String registro) {
+        switch (registro) {
+            case "AX":
+                ax--;
+                break;
+            case "BX":
+                bx--;
+                break;
+            case "CX":
+                cx--;
+                break;
+            case "DX":
+                dx--;
                 break;
             default:
                 break;
@@ -165,11 +277,65 @@ public class CPU {
         }
     }
 
+    private void intercambiarRegistros(String registro1, String registro2) {
+        int temp = getRegistro(registro1);
+        moverValor(registro1, String.valueOf(getRegistro(registro2)));
+        moverValor(registro2, String.valueOf(temp));
+        
+    }
+    private void manejarInterrupcion(String valor) {
+        // Implementar la lógica para manejar interrupciones según el valor
+    }
+
+    private void manejarSalto(String valor) {
+        pc += Integer.parseInt(valor);
+    }
+
+    private void manejarComparacion(String registro1, String registro2) {
+        int r1, r2;
+        r1 = getRegistro(registro1);
+        r2 = getRegistro(registro2);
+        flag = r1 == r2; 
+    }
+
+    private void manejarSaltoCondicional(String operacion, String valor) {
+        if (operacion.equals("JE") && flag) {
+            pc += Integer.parseInt(valor);
+        } else if (operacion.equals("JNE") && !flag) {
+            pc += Integer.parseInt(valor);
+        }
+    }
+
+    private void pushAlStack(String registro, BCP bcp) {
+        bcp.pushPila(String.valueOf(getRegistro(registro)));
+    }
+
+    private void popDelStack(String registro, BCP bcp) {
+        String valor = bcp.popPila();
+        if (valor != null) {
+            moverValor(registro, valor);
+        }
+    }
+
     public int getAx() { return ax; }
     public int getBx() { return bx; }
     public int getCx() { return cx; }
     public int getDx() { return dx; }
     public int getAccumulator() { return accumulator; }
+    public int getRegistro(String registro) {
+        switch (registro) {
+            case "AX":
+                return ax;
+            case "BX":
+                return bx;
+            case "CX":
+                return cx;
+            case "DX":
+                return dx;
+            default:
+                return 0; 
+        }
+    }
  
     // Reinicia los registros y el acumulador a 0
     public void reiniciar() {

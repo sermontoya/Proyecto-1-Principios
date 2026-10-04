@@ -64,6 +64,13 @@ public class Memoria {
         return memoria;
     }
 
+    public String leerMemoria(int direccion) {
+        if (direccion < 0 || direccion >= size) {
+            return null; // Dirección inválida
+        }
+        return memoria.get(direccion).getValor();
+    }
+
     public String getError() {
         return error;
     }

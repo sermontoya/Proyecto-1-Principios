@@ -470,7 +470,7 @@ public class Principal extends javax.swing.JFrame {
         cargarTablaInstrucciones();
         actualizarTablaMemoria();
 
-        cpu = new CPU();
+        cpu = new CPU(memoria);
         bcp = new BCP(1, 0, "LISTO", "", 0, 0, 1);
         actualizarTablaRegistros();
 
@@ -514,7 +514,7 @@ public class Principal extends javax.swing.JFrame {
         bcp.setInstruccion(instruccionActual);
 
         // Ejecutar la instrucción
-        cpu.ejecutarInstruccion(instruccionActual);
+        cpu.ejecutarInstruccion(instruccionActual, bcp);
 
         // Avanzar al siguiente PC
         bcp.avanzarPc();
@@ -579,12 +579,9 @@ public class Principal extends javax.swing.JFrame {
     private void cargarTablaInstrucciones() {
         DefaultTableModel modelo = (DefaultTableModel) jTable1.getModel();
         modelo.setRowCount(0);
-        Assembler assembler = new Assembler();
+       
 
-        for (String linea : instrucciones) {
-            String binario = assembler.ensamblarInstruccion(linea);
-            modelo.addRow(new Object[]{linea, binario});
-        }
+    
 
         // Ajustar la altura del JScrollPane según la cantidad de filas
         int alturaFila = jTable1.getRowHeight();
