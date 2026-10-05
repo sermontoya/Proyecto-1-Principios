@@ -35,6 +35,7 @@ public class Principal extends javax.swing.JFrame {
     private BCP bcp;
     private ArrayList<String> instrucciones;
     private int instruccionEjecutada = -1;
+    private Almacenamiento almacenamiento;
 
     // Lista de Trabajos: BCPs en estado NUEVO que todavía no consiguen espacio en memoria
     private final ArrayList<BCP> listaTrabajos = new ArrayList<>();
@@ -49,6 +50,7 @@ public class Principal extends javax.swing.JFrame {
         initComponents();
         configurarDiseno();
         crearMemoria();
+        crearAlmacenamiento();
     }
 
     // Configura el diseño de la interfaz, incluyendo colores, fuentes y estilos de las tablas
@@ -97,6 +99,7 @@ public class Principal extends javax.swing.JFrame {
         jTable4.setRowHeight(22);
         jTable5.setRowHeight(24);
         jTable6.setRowHeight(24);
+        jTable7.setRowHeight(24);
 
 
     }
@@ -530,6 +533,7 @@ public class Principal extends javax.swing.JFrame {
                 "Archivos ASM (*.asm)", "asm"
         );
         selector.setFileFilter(filtro);
+        selector.setMultiSelectionEnabled(true);
 
         int resultado = selector.showOpenDialog(this);
 
@@ -537,9 +541,9 @@ public class Principal extends javax.swing.JFrame {
             return;
         }
 
-        File archivoSeleccionado = selector.getSelectedFile();
+        File archivoSeleccionado = selector.getSelectedFiles()[0];
         String ruta = archivoSeleccionado.getAbsolutePath();
-
+        String nombreArchivo = archivoSeleccionado.getName();
         Validator loader = new Validator();
 
         if (!loader.cargarArchivo(ruta)) {
@@ -551,10 +555,10 @@ public class Principal extends javax.swing.JFrame {
 
         // El archivo se convierte en un trabajo: un BCP en estado NUEVO dentro de la Lista de Trabajos
         int base = memoria.getUltimaPosicionInstruccion();
-        BCP trabajo = new BCP(contadorPid++, 0, "NUEVO", "", base, instrucciones.size(), 1);
+        BCP trabajo = new BCP(contadorPid++, base, "NUEVO", "", base, instrucciones.size(), 1);
         listaTrabajos.add(trabajo);
         actualizarTablaTrabajos();
-
+        almacenamiento.guardarArchivo(nombreArchivo, instrucciones);
         // Planificador de trabajos: solo admite el trabajo si cabe en la zona de Usuario
         memoria.asignarInstrucciones(instrucciones);
 
@@ -567,7 +571,9 @@ public class Principal extends javax.swing.JFrame {
         }
 
         // Hay espacio: el trabajo pasa de la Lista de Trabajos a la Lista de Procesos
-        admitirTrabajo(trabajo);
+        if (listaProcesos.size() < 5) {
+            admitirTrabajo(trabajo);
+        }
         actualizarTablaTrabajos();
 
         JOptionPane.showMessageDialog(this, "El archivo se cargó correctamente.",
@@ -579,20 +585,21 @@ public class Principal extends javax.swing.JFrame {
         bcp = trabajo;
         actualizarTablaMemoria();
         actualizarTablaRegistros();
+        actualizarTablaAlmacenamiento();
 
         jButton2.setEnabled(true);
         jButton3.setEnabled(true);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        while (bcp != null && bcp.getPc() < instrucciones.size()) {
+        while (bcp != null && bcp.getPc() < bcp.getInicio() + bcp.getTamano()) {
             ejecutarUnPaso();
         }
         finalizarSiTermino();
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        if (bcp != null && bcp.getPc() < instrucciones.size()) {
+        if (bcp != null && bcp.getPc() < bcp.getInicio() + bcp.getTamano()) {
             ejecutarUnPaso();
         }
         finalizarSiTermino();
@@ -603,7 +610,7 @@ public class Principal extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        // TODO add your handling code here:
+        crearAlmacenamiento();
     }//GEN-LAST:event_jButton6ActionPerformed
     
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -612,12 +619,10 @@ public class Principal extends javax.swing.JFrame {
 
     /** Ejecuta una sola instrucción  y refresca la tabla de CPU y BCP. */
     private void ejecutarUnPaso() {
-        int indiceActual = bcp.getPc();
-
-        String instruccionActual = instrucciones.get(indiceActual);
-
-        // Guardar la instrucción que se está ejecutando
-        instruccionEjecutada = indiceActual;
+        // El PC es una dirección absoluta de memoria: la instrucción se lee de ahí,
+        // no de la lista "instrucciones" (que solo guarda el último programa cargado)
+        int direccionActual = bcp.getPc();
+        String instruccionActual = memoria.leerMemoria(direccionActual);
 
         // Información contable: CPU asignada y hora en que arrancó el proceso
         bcp.setEstado("EJECUCION");
@@ -647,7 +652,7 @@ public class Principal extends javax.swing.JFrame {
 
     /** Deshabilita los botones de ejecución y avisa cuando ya no quedan instrucciones. */
     private void finalizarSiTermino() {
-        if (bcp != null && bcp.getPc() >= instrucciones.size()) {
+        if (bcp != null && bcp.getPc() >= bcp.getInicio() + bcp.getTamano()) {
             jButton2.setEnabled(false);
             jButton3.setEnabled(false);
             bcp.setEstado("FINALIZADO");
@@ -655,10 +660,14 @@ public class Principal extends javax.swing.JFrame {
             actualizarTablaBcp();
             JOptionPane.showMessageDialog(this, "Programa terminado.",
                     "Ejecución completa", JOptionPane.INFORMATION_MESSAGE);
+            memoria.eliminarProceso(bcp);
+            actualizarTablaMemoria();
+            listaProcesos.remove(bcp);
+            actualizarTablaProcesos();
+            reiniciarTablaBcp();
         }
     }
 
-    /** Planificador de trabajos: mueve un BCP de la Lista de Trabajos a la Lista de Procesos. */
     /** Planificador de trabajos: mueve un BCP de la Lista de Trabajos a la Lista de Procesos. */
     private void admitirTrabajo(BCP trabajo) {
         listaTrabajos.remove(trabajo);
@@ -788,6 +797,13 @@ public class Principal extends javax.swing.JFrame {
         jButton3.setEnabled(false);
     }
 
+    /** Crea un Almacenamiento nuevo del tamaño indicado en el spinner y lo muestra en jTable7. */
+    private void crearAlmacenamiento() {
+        int tamano = (Integer) jSpinner2.getValue();
+        almacenamiento = new Almacenamiento(tamano);
+        actualizarTablaAlmacenamiento();
+    }
+
     /** Deja jTable3 en su estado inicial: registros en 0, IR vacío y PC en 0. */
     private void reiniciarTablaCpu() {
         DefaultTableModel modeloCpu = (DefaultTableModel) jTable3.getModel();
@@ -812,6 +828,17 @@ public class Principal extends javax.swing.JFrame {
         DefaultTableModel modelo = (DefaultTableModel) jTable2.getModel();
         modelo.setRowCount(0);
         ArrayList<Posicion> posiciones = memoria.getMemoria();
+        for (int i = 0; i < posiciones.size(); i++) {
+            Posicion p = posiciones.get(i);
+            modelo.addRow(new Object[]{i, p.getValor(), p.getZona(), p.getProposito()});
+        }
+    }
+
+    /** Refleja el contenido actual del objeto Almacenamiento en jTable7. */
+    private void actualizarTablaAlmacenamiento() {
+        DefaultTableModel modelo = (DefaultTableModel) jTable7.getModel();
+        modelo.setRowCount(0);
+        ArrayList<Posicion> posiciones = almacenamiento.getAlmacenamiento();
         for (int i = 0; i < posiciones.size(); i++) {
             Posicion p = posiciones.get(i);
             modelo.addRow(new Object[]{i, p.getValor(), p.getZona(), p.getProposito()});
@@ -872,4 +899,6 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JTable jTable6;
     private javax.swing.JTable jTable7;
     // End of variables declaration//GEN-END:variables
+
+   
 }

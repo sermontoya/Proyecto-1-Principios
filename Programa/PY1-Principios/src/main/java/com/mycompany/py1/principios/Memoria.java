@@ -308,4 +308,34 @@ public class Memoria {
             error = "No se encontró el BCP con ID " + id + " en la memoria del kernel para actualizarlo.";
         }
     }
+
+    public void eliminarProceso(BCP bcp) {
+        int id = bcp.getPid();
+        eliminarInstrucciones(bcp);
+        eliminarBCP(id);
+    }
+    public void eliminarInstrucciones(BCP bcp) {
+        int inicio = bcp.getInicio();
+        int tamano = bcp.getTamano();
+        for (int i = inicio; i < inicio + tamano; i++) {
+            this.guardarValor(i, "0", "Usuario", "Sin propósito");
+        }
+    }
+
+    public void eliminarBCP(int pid) {
+        int posicion = -1;
+        for(int i = 0; i < inicioMemoriaUsuario; i++) {
+            if (memoria.get(i).getProposito().equals("ID BCP") && memoria.get(i).getValor().equals(String.valueOf(pid))) {
+                posicion = i;
+                break;
+            }
+        }
+        if (posicion >= 0) {
+            for (int i = 0; i < 22; i++) {
+                this.guardarValor(posicion + i, "0", "Sistema Operativo", "Sin propósito");
+            }
+        } else {
+            error = "No se encontró el BCP con ID " + pid + " en la memoria del kernel para eliminarlo.";
+        }
+    }
 }
