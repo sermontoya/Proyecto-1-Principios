@@ -28,6 +28,8 @@ public class BCP {
     private int inicio;
     private int tamano;
     private int prioridad;
+    private String nombreArchivo;   // archivo en Almacenamiento del que sale el programa
+
     
 
     public BCP(int pid, int pc, String estado, String instruccion, int inicio, int tamano, int prioridad) {
@@ -39,6 +41,7 @@ public class BCP {
         this.tamano = tamano;
         this.prioridad = prioridad;
         this.pila = new Stack<>();
+        this.archivos = new ArrayList<>();
         this.tiempoEjecucion = 0;
     }
 
@@ -159,6 +162,16 @@ public class BCP {
         return pila.pop();
     }
 
+    public void abrirArchivo(String nombre) {
+        if (!archivos.contains(nombre)) {
+            archivos.add(nombre);
+        }
+    }
+
+public void cerrarArchivo(String nombre) {
+    archivos.remove(nombre);
+}
+
     public Stack<String> getPila() {
         return pila;
     }
@@ -185,6 +198,14 @@ public class BCP {
     public void inicioProceso() {
         this.tiempoInicio = LocalDateTime.now();
     }
+
+
+    public String getNombreArchivo() { return nombreArchivo; }
+
+    public void setNombreArchivo(String nombreArchivo) { this.nombreArchivo = nombreArchivo; }
+
+    // La base puede cambiar entre que el trabajo se crea y que se admite en memoria
+    public void setInicio(int inicio) { this.inicio = inicio; }
 
 
 }

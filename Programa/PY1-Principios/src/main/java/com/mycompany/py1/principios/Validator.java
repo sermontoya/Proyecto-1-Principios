@@ -18,7 +18,7 @@ public class Validator {
     private String error = null;
     private ArrayList<String> instrucciones = null;
     // --- Registro genérico, reutilizado en todos los patrones ---
-    private static final String REG = "(AX|BX|CX|DX)";
+    private static final String REG = "(AX|BX|CX|DX|AH|AL|BH|BL|CH|CL|DH|DL)";
  
     // LOAD reg | STORE reg | ADD reg | SUB reg
     private static final Pattern PATRON_LOAD_STORE_ADD_SUB =
@@ -27,6 +27,15 @@ public class Validator {
     // MOV reg_destino, valor      (ej. MOV BX, 5)
     private static final Pattern PATRON_MOV_VALOR =
             Pattern.compile("^(MOV)\\s+" + REG + "\\s*,\\s*(-?\\d+)$", Pattern.CASE_INSENSITIVE);
+    
+    // MOV DX|AL, "texto"      (ej. MOV DX, "Hola mundo")
+    private static final Pattern PATRON_MOV_TEXTO =
+        Pattern.compile("^(MOV)\\s+(DX|AL)\\s*,\\s*\"([^\"]*)\"$", Pattern.CASE_INSENSITIVE);
+
+
+    // MOV AH, código   (ej. MOV AH, 3CH)
+    private static final Pattern PATRON_MOV_INT =
+            Pattern.compile("^(MOV)\\s+(AH)\\s*,\\s*(3C|3D|4D|40|41)H$", Pattern.CASE_INSENSITIVE);
  
     // MOV reg_destino, reg_origen (ej. MOV BX, AX)
     private static final Pattern PATRON_MOV_REGISTRO =
@@ -47,7 +56,7 @@ public class Validator {
  
     // JMP [+/-]Desplazamiento   (ej. JMP +3, JMP -2)
     private static final Pattern PATRON_JMP =
-            Pattern.compile("^(JMP)\\s+([+-]?\\d+)$", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("^(JMP)\\s+\\[([+-]?\\d+)\\]$", Pattern.CASE_INSENSITIVE);
  
     // CMP reg1, reg2
     private static final Pattern PATRON_CMP =
@@ -55,7 +64,7 @@ public class Validator {
  
     // JE / JNE [+/-]Desplazamiento
     private static final Pattern PATRON_JE_JNE =
-            Pattern.compile("^(JE|JNE)\\s+([+-]?\\d+)$", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("^(JE|JNE)\\s+\\[([+-]?\\d+)\\]$", Pattern.CASE_INSENSITIVE);
  
     // PARAM v1, v2, v3   (1 a 3 valores numéricos, separados por coma)
     private static final Pattern PATRON_PARAM =
@@ -98,6 +107,8 @@ public class Validator {
     private boolean esLineaValida(String linea) {
         return PATRON_LOAD_STORE_ADD_SUB.matcher(linea).matches()
                 || PATRON_MOV_VALOR.matcher(linea).matches()
+                || PATRON_MOV_INT.matcher(linea).matches()
+                || PATRON_MOV_TEXTO.matcher(linea).matches()
                 || PATRON_MOV_REGISTRO.matcher(linea).matches()
                 || PATRON_INC_DEC.matcher(linea).matches()
                 || PATRON_SWAP.matcher(linea).matches()

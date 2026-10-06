@@ -5,6 +5,8 @@
 package com.mycompany.py1.principios;
 
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -16,42 +18,49 @@ public class CPU {
     private int ax;
     private int bx;
     private int cx;
-    private int dx;
+    private String dx;
+    private String ah;
+    private String al;
     private int accumulator;
     private int pc;
     private String InstructionRegister;
     private Memoria memoria;
     private boolean flag;
+    private Interrupcion interrupcion;
 
-    public CPU(Memoria memoria) {
+    // MOV DX, "texto"  o  MOV AL, "texto": se evalúa antes de pasar a mayúsculas
+    private static final Pattern PATRON_TEXTO =
+        Pattern.compile("^MOV\\s+(DX|AL)\\s*,\\s*\"([^\"]*)\"$", Pattern.CASE_INSENSITIVE);
+
+    public CPU(Memoria memoria, Interrupcion interrupcion) {
         this.memoria = memoria;
+        this.interrupcion = interrupcion;
         this.ax = 0;
         this.bx = 0;
         this.cx = 0;
-        this.dx = 0;
+        this.dx = "0";
+        this.ah = "0";
+        this.al = "0";
         this.accumulator = 0;
         this.pc = 0;
         this.InstructionRegister = "";
 
     }
 
-    public void ejecutarPrograma( BCP bcp) {
-        this.pc = bcp.getPc();
-        int inicio = bcp.getInicio();
-        int tamano = bcp.getTamano();
-        while (pc < inicio + tamano) {
-            String instruccion = memoria.leerMemoria(pc);
-            ejecutarInstruccion(instruccion, bcp);
-            pc++;
-            bcp.setPc(pc);
-            
-        }
-
-    }
+    
     
     // revisa la instrucción y ejecuta lo que indica
     public void ejecutarInstruccion(String instruccion, BCP bcp) {
         this.InstructionRegister = instruccion;
+        Matcher mTexto = PATRON_TEXTO.matcher(instruccion.trim());
+        if (mTexto.matches()) {
+            if (mTexto.group(1).equalsIgnoreCase("DX")) {
+                dx = mTexto.group(2);   // texto tal cual, sin comillas y sin mayúsculas
+            } else {
+                al = mTexto.group(2);
+            }
+            return;
+        }
         String normalizada = instruccion.trim().toUpperCase();
         String[] partes = normalizada.split("[\\s,]+"); //formato de instruccion
         String operacion = partes[0];
@@ -60,6 +69,9 @@ public class CPU {
         String valor = "";
         if (operacion.equals("PARAM")) {
                 params = Arrays.copyOfRange(partes, 1, partes.length);
+                for (String param : params) {
+                    bcp.pushPila(param);
+                }
         }
         else if (partes.length > 1) {
             registro = partes[1];
@@ -88,7 +100,13 @@ public class CPU {
                         moverValor(registro, String.valueOf(getCx()));
                         break;
                     case "DX":
-                        moverValor(registro, String.valueOf(getDx()));
+                        moverValor(registro, getDx());
+                        break;
+                    case "AH":
+                        moverValor(registro, ah);
+                        break;
+                    case "AL":
+                        moverValor(registro, al);
                         break;
                     default:
                         moverValor(registro, valor);
@@ -121,17 +139,17 @@ public class CPU {
                 intercambiarRegistros(registro, valor);
                 break;
             case "INT":
-                // Manejar interrupciones según el valor de registro
+                manejarInterrupcion(registro, bcp);
                 break;
             case "JMP":
-                manejarSalto(valor);
+                manejarSalto(registro, bcp);
                 break;
             case "CMP":
                 manejarComparacion(registro, valor);
                 break;
             case "JE":
             case "JNE": 
-                manejarSaltoCondicional(operacion, valor);
+                manejarSaltoCondicional(operacion, registro, bcp);
                 break;
             case "PUSH":
                 pushAlStack(registro, bcp);
@@ -156,7 +174,13 @@ public class CPU {
                 accumulator = cx;
                 break;
             case "DX":
-                accumulator = dx;
+                accumulator = Integer.parseInt(dx);
+                break;
+            case "AH":
+                accumulator = Integer.parseInt(ah);
+                break;
+            case "AL":
+                accumulator = Integer.parseInt(al);
                 break;
             default:
                 break;
@@ -176,7 +200,7 @@ public class CPU {
                 cx = accumulator;
                 break;
             case "DX":
-                dx = accumulator;
+                dx = String.valueOf(accumulator);
                 break;
             default:
                 break;
@@ -195,8 +219,14 @@ public class CPU {
                 cx = Integer.parseInt(valor);
                 break;
             case "DX":
-                dx = Integer.parseInt(valor);
+                dx = valor;
                 break;
+            case "AH":
+                ah = valor;
+                break;
+            case "AL":
+                al = valor;
+                break; 
             default:
                 break;
         }
@@ -214,7 +244,7 @@ public class CPU {
                 accumulator += cx;
                 break;
             case "DX":
-                accumulator += dx;
+                accumulator += Integer.parseInt(dx);
                 break;
             default:
                 break;
@@ -233,7 +263,7 @@ public class CPU {
                 cx++;
                 break;
             case "DX":
-                dx++;
+                dx = String.valueOf(Integer.parseInt(dx) + 1);
                 break;
             default:
                 break;
@@ -252,7 +282,7 @@ public class CPU {
                 cx--;
                 break;
             case "DX":
-                dx--;
+                dx = String.valueOf(Integer.parseInt(dx) - 1);
                 break;
             default:
                 break;
@@ -272,7 +302,7 @@ public class CPU {
                 accumulator -= cx;
                 break;
             case "DX":
-                accumulator -= dx;
+                accumulator -= Integer.parseInt(dx);
                 break;
             default:
                 break;
@@ -285,14 +315,65 @@ public class CPU {
         moverValor(registro2, String.valueOf(temp));
         
     }
-    private void manejarInterrupcion(String valor) {
-        // Implementar la lógica para manejar interrupciones según el valor
+    private void manejarInterrupcion(String valor, BCP bcp) {
+        if(valor.equals("20H")) {
+            // Interrupción 20H: Terminar programa
+            interrupcion.terminarPrograma(bcp);
+        } else if(valor.equals("10H")) {
+            // Interrupción 10H: Imprimir en pantalla
+            imprimir();
+        } else if(valor.equals("09H")) {
+            // Interrupción 09H: Leer de teclado
+            leer();
+        } else if(valor.equals("21H")) {
+            // Interrupción 21H: Manejo de archivos
+            manejarArchivos(bcp);
+        }
     }
 
-    private void manejarSalto(String valor) {
-        pc += Integer.parseInt(valor);
-    }
+    
+    // INT 21H: DX = nombre del archivo, AH = función, AL = contenido (leer/escribir)
+    private void manejarArchivos(BCP bcp) {
+        String nombre = dx;
+        boolean exito;
 
+        switch (ah) {
+            case "3CH":   // crear
+                exito = interrupcion.crearArchivo(nombre);
+                break;
+            case "3DH":   // abrir
+                exito = interrupcion.abrirArchivo(nombre);
+                if (exito) {
+                    bcp.abrirArchivo(nombre);
+                }
+                break;
+            case "4DH": { // leer: el contenido queda en AL
+                String contenido = interrupcion.leerArchivo(nombre);
+                exito = contenido != null;
+                if (exito) {
+                    al = contenido;
+                }
+                break;
+            }
+            case "40H":   // escribir el contenido de AL
+                exito = interrupcion.escribirArchivo(nombre, al);
+                break;
+            case "41H":   // eliminar
+                exito = interrupcion.eliminarArchivo(nombre);
+                if (exito) {
+                    bcp.cerrarArchivo(nombre);
+                }
+                break;
+            default:
+                interrupcion.abortarProceso(bcp,
+                        "INT 21H: la función AH = " + ah + " no existe.");
+                return;
+        }
+
+        if (!exito) {
+            interrupcion.abortarProceso(bcp, null);   // null = usar el error de Almacenamiento
+        }
+    }
     private void manejarComparacion(String registro1, String registro2) {
         int r1, r2;
         r1 = getRegistro(registro1);
@@ -300,12 +381,30 @@ public class CPU {
         flag = r1 == r2; 
     }
 
-    private void manejarSaltoCondicional(String operacion, String valor) {
-        if (operacion.equals("JE") && flag) {
-            pc += Integer.parseInt(valor);
-        } else if (operacion.equals("JNE") && !flag) {
-            pc += Integer.parseInt(valor);
+    private void manejarSalto(String valor, BCP bcp) {
+        saltar(leerDesplazamiento(valor), bcp);
+    }
+
+    private void manejarSaltoCondicional(String operacion, String valor, BCP bcp) {
+        if ((operacion.equals("JE") && flag) || (operacion.equals("JNE") && !flag)) {
+            saltar(leerDesplazamiento(valor), bcp);
         }
+    }
+
+    // Quita los corchetes: "[+5]" -> 5, "[-3]" -> -3
+    private int leerDesplazamiento(String valor) {
+        return Integer.parseInt(valor.replaceAll("[\\[\\]]", ""));
+    }
+
+    // Modifica el PC del BCP (el que usa Principal). Principal le suma 1 después de ejecutar.
+    private void saltar(int desplazamiento, BCP bcp) {
+        int destino = bcp.getPc() + 1 + desplazamiento;   // dónde terminará el PC
+        int fin = bcp.getInicio() + bcp.getTamano();
+        if (destino < bcp.getInicio() || destino > fin) {
+            interrupcion.imprimir("Salto fuera del programa (destino " + destino + ").");
+            return;
+        }
+        bcp.setPc(bcp.getPc() + desplazamiento);
     }
 
     private void pushAlStack(String registro, BCP bcp) {
@@ -319,10 +418,34 @@ public class CPU {
         }
     }
 
+    private void imprimir() {
+        String texto = dx;
+        interrupcion.imprimir(texto);
+    }
+
+    private void leer() {
+        boolean valido = false;
+        String input = "";
+        while (!valido) {
+            input = interrupcion.leer();
+            try {
+                int valor = Integer.parseInt(input);
+                if (valor < 0 || valor > 255) {
+                    interrupcion.imprimir("Entrada inválida. Por favor, ingrese un número entero no negativo.");
+                    continue;
+                }
+                valido = true;
+            } catch (NumberFormatException e) {
+                interrupcion.imprimir("Entrada inválida. Por favor, ingrese un número entero.");
+            }
+        }
+        moverValor("DX", input);
+    }
+
     public int getAx() { return ax; }
     public int getBx() { return bx; }
     public int getCx() { return cx; }
-    public int getDx() { return dx; }
+    public String getDx() { return dx; }
     public int getAccumulator() { return accumulator; }
     public int getRegistro(String registro) {
         switch (registro) {
@@ -333,11 +456,14 @@ public class CPU {
             case "CX":
                 return cx;
             case "DX":
-                return dx;
+                return Integer.parseInt(dx);
             default:
                 return 0; 
         }
     }
+
+    public String getAh() { return ah; }
+    public String getAl() { return al; }
     public int getPc() { return pc; }
     public String getInstructionRegister() { return InstructionRegister; }
     public int getId() { return id; }
@@ -347,7 +473,11 @@ public class CPU {
         ax = 0;
         bx = 0;
         cx = 0;
-        dx = 0;
+        dx = "0";
+        ah = "0";
+        al = "0";
+        InstructionRegister = "";
+        pc = 0;
         accumulator = 0;
     }
 }

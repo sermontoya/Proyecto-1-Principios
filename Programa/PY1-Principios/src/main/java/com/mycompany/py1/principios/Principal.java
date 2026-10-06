@@ -23,7 +23,7 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author sermo
  */
-public class Principal extends javax.swing.JFrame {
+public class Principal extends javax.swing.JFrame implements Interrupcion {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Principal.class.getName());
 
@@ -36,6 +36,8 @@ public class Principal extends javax.swing.JFrame {
     private ArrayList<String> instrucciones;
     private int instruccionEjecutada = -1;
     private Almacenamiento almacenamiento;
+    private javax.swing.Timer temporizador;
+    private boolean ejecutandoTodo = false;
 
     // Lista de Trabajos: BCPs en estado NUEVO que todavía no consiguen espacio en memoria
     private final ArrayList<BCP> listaTrabajos = new ArrayList<>();
@@ -169,6 +171,12 @@ public class Principal extends javax.swing.JFrame {
         jSpinner2 = new javax.swing.JSpinner();
         jButton6 = new javax.swing.JButton();
         jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
+        jLabel10 = new javax.swing.JLabel();
+        jScrollPane8 = new javax.swing.JScrollPane();
+        jTextArea2 = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -213,9 +221,11 @@ public class Principal extends javax.swing.JFrame {
             new Object [][] {
                 {"AC", "0"},
                 {"AX", "0"},
+                {"AL", "0"},
+                {"AH", "0"},
                 {"BX", "0"},
                 {"CX", "0"},
-                {"DX", "0"},
+                {"DX", null},
                 {"IR", null},
                 {"PC", "0"}
             },
@@ -412,6 +422,30 @@ public class Principal extends javax.swing.JFrame {
         jLabel8.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel8.setText("Tamaño de almacenamiento: ");
 
+        jLabel9.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel9.setText("Pantalla");
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
+        jTextArea1.setRows(1);
+        jTextArea1.setWrapStyleWord(true);
+        jTextArea1.setAutoscrolls(false);
+        jTextArea1.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        jScrollPane1.setViewportView(jTextArea1);
+
+        jLabel10.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel10.setText("Teclado");
+
+        jTextArea2.setEditable(false);
+        jTextArea2.setColumns(20);
+        jTextArea2.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
+        jTextArea2.setRows(5);
+        jTextArea2.setText(">");
+        jTextArea2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jScrollPane8.setViewportView(jTextArea2);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -444,28 +478,37 @@ public class Principal extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(90, 90, 90)
+                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(147, 147, 147))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap(88, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                            .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(34, 34, 34)
-                                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 491, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(14, 14, 14)))
-                        .addGap(73, 73, 73))
+                                .addGap(200, 200, 200)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(17, 17, 17)
+                                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(206, 206, 206)
+                                .addComponent(jScrollPane8, javax.swing.GroupLayout.PREFERRED_SIZE, 446, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(106, 106, 106))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(10, 10, 10)
-                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(75, 75, 75)
-                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addGap(42, 42, 42)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 537, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 523, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(71, 71, 71)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(2, 2, 2)
@@ -493,13 +536,16 @@ public class Principal extends javax.swing.JFrame {
                     .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(15, 15, 15)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(37, 37, 37)
+                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -510,16 +556,30 @@ public class Principal extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(77, 77, 77)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jScrollPane8, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(78, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(121, 121, 121))))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(30, 30, 30)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(15, 15, 15)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(40, 40, 40)
+                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(53, 53, 53))
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(165, 165, 165))))
         );
 
         pack();
@@ -553,56 +613,86 @@ public class Principal extends javax.swing.JFrame {
 
         instrucciones = loader.getInstrucciones();
 
-        // El archivo se convierte en un trabajo: un BCP en estado NUEVO dentro de la Lista de Trabajos
-        int base = memoria.getUltimaPosicionInstruccion();
-        BCP trabajo = new BCP(contadorPid++, base, "NUEVO", "", base, instrucciones.size(), 1);
-        listaTrabajos.add(trabajo);
-        actualizarTablaTrabajos();
-        almacenamiento.guardarArchivo(nombreArchivo, instrucciones);
-        // Planificador de trabajos: solo admite el trabajo si cabe en la zona de Usuario
-        memoria.asignarInstrucciones(instrucciones);
-
-        if (memoria.getError() != null) {
-            // El programa no cabe en el espacio de Usuario disponible: el trabajo sigue esperando en la Lista de Trabajos
-            JOptionPane.showMessageDialog(this, memoria.getError(), "Error", JOptionPane.ERROR_MESSAGE);
-            jButton2.setEnabled(false);
-            jButton3.setEnabled(false);
-            return;
-        }
-
-        // Hay espacio: el trabajo pasa de la Lista de Trabajos a la Lista de Procesos
-        if (listaProcesos.size() < 5) {
-            admitirTrabajo(trabajo);
-        }
-        actualizarTablaTrabajos();
-
-        JOptionPane.showMessageDialog(this, "El archivo se cargó correctamente.",
-                "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
         
 
-        cpu = new CPU(memoria);
-        bcp = trabajo;
-        actualizarTablaMemoria();
-        actualizarTablaRegistros();
+        // El trabajo espera en Almacenamiento: primero se guarda el archivo.
+        // Si ya hay uno con ese nombre (mismo .asm cargado dos veces) se le agrega el PID.
+        String nombreGuardado = nombreArchivo;
+        if (almacenamiento.leerArchivo(nombreGuardado) != null) {
+            nombreGuardado = nombreArchivo + "#" + contadorPid;
+        }
+        if (!almacenamiento.guardarArchivo(nombreGuardado, instrucciones)) {
+            JOptionPane.showMessageDialog(this, almacenamiento.getError(),
+                    "Error de almacenamiento", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         actualizarTablaAlmacenamiento();
 
-        jButton2.setEnabled(true);
-        jButton3.setEnabled(true);
+        // El archivo se convierte en un trabajo: BCP NUEVO en la Lista de Trabajos
+        int base = memoria.getUltimaPosicionInstruccion();
+        BCP trabajo = new BCP(contadorPid++, base, "NUEVO", "", base, instrucciones.size(), 1);
+        trabajo.setNombreArchivo(nombreGuardado);
+                // El BCP del trabajo se guarda en el kernel y se enlaza al final de la Lista de Trabajos
+                // Si el kernel tiene espacio, el BCP se copia ya; si no, espera sin copia hasta poder admitirlo
+        if (memoria.getTamanoKernelSinUso() >= 22) {
+            memoria.guardarBCP(trabajo);
+        }
+        if (!listaTrabajos.isEmpty()) {
+            BCP ultimo = listaTrabajos.get(listaTrabajos.size() - 1);
+            ultimo.setSiguiente(trabajo);
+            memoria.actualizarBCP(ultimo);
+        }
+        listaTrabajos.add(trabajo);
+        sincronizarListas();
+        actualizarTablaTrabajos();
+
+        // Planificador de trabajos: admite lo que quepa
+        planificarTrabajos();
+
+        if (listaTrabajos.contains(trabajo)) {
+            JOptionPane.showMessageDialog(this,
+                    "No hay espacio disponible: el trabajo PID " + trabajo.getPid()
+                    + " queda en la Lista de Trabajos hasta que se libere memoria.",
+                    "Trabajo en espera", JOptionPane.WARNING_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "El archivo se cargó correctamente.",
+                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        actualizarTablaMemoria();
+
+        // Solo se despacha si la CPU está libre; no se pisa el proceso en ejecución
+        if (bcp == null) {
+            despacharSiguiente();
+        }
+        actualizarBotones();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        while (bcp != null && bcp.getPc() < bcp.getInicio() + bcp.getTamano()) {
-            ejecutarUnPaso();
+        if (bcp == null || ejecutandoTodo) {
+            return;
         }
-        finalizarSiTermino();
+        ejecutandoTodo = true;
+        actualizarBotones();
+        // Un paso por tick: entre pasos Swing repinta las tablas
+        temporizador = new javax.swing.Timer(120, e -> {
+            if (bcp != null) {
+                ejecutarUnPaso();
+            }
+            if (bcp == null) {
+                temporizador.stop();
+                ejecutandoTodo = false;
+                actualizarBotones();
+            }
+        });
+        temporizador.start();
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        if (bcp != null && bcp.getPc() < bcp.getInicio() + bcp.getTamano()) {
+        if (bcp != null) {
             ejecutarUnPaso();
         }
-        finalizarSiTermino();
+        
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
@@ -617,10 +707,110 @@ public class Principal extends javax.swing.JFrame {
         crearMemoria();
     }
 
-    /** Ejecuta una sola instrucción  y refresca la tabla de CPU y BCP. */
+    @Override
+    public void imprimir(String texto) {
+        jTextArea2.append(texto + "\n> ");
+    }
+ 
+    @Override
+    public String leer() {
+        // Mientras se espera la entrada no se puede lanzar otra ejecución
+        javax.swing.JButton[] botones = {jButton2, jButton3};
+        boolean[] estado = new boolean[botones.length];
+        for (int i = 0; i < botones.length; i++) {
+            estado[i] = botones[i].isEnabled();
+            botones[i].setEnabled(false);
+        }
+
+        // El mensaje se muestra en jTextArea2; la respuesta se teclea en jTextArea1
+        jTextArea2.append("> Esperando entrada del usuario...\n");
+        jTextArea1.setText("");
+        jTextArea1.setEditable(true);
+        jTextArea1.requestFocusInWindow();
+
+        final String[] respuesta = {""};
+        final java.awt.SecondaryLoop espera =
+                java.awt.Toolkit.getDefaultToolkit().getSystemEventQueue().createSecondaryLoop();
+
+        java.awt.event.KeyAdapter oyente = new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                // Enter termina la lectura
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    e.consume();   // evita el salto de línea dentro de la respuesta
+                    respuesta[0] = jTextArea1.getText();
+                    espera.exit();
+                }
+            }
+        };
+        jTextArea1.addKeyListener(oyente);
+
+        espera.enter();   // aquí se detiene el programa hasta que el usuario presione Enter
+
+        jTextArea1.removeKeyListener(oyente);
+        jTextArea1.setEditable(false);
+        jTextArea2.append("> Entrada recibida.\n");
+        for (int i = 0; i < botones.length; i++) {
+            botones[i].setEnabled(estado[i]);
+        }
+        return respuesta[0].trim();
+    }
+ 
+        @Override
+    public boolean crearArchivo(String nombre) {
+        boolean exito = almacenamiento.crearArchivo(nombre);
+        actualizarTablaAlmacenamiento();
+        return exito;
+    }
+
+    @Override
+    public boolean escribirArchivo(String nombre, String contenido) {
+        boolean exito = almacenamiento.agregarLinea(nombre, contenido);
+        actualizarTablaAlmacenamiento();
+        return exito;
+    }
+
+    @Override
+    public String leerArchivo(String nombre) {
+        ArrayList<String> lineas = almacenamiento.leerArchivo(nombre);
+        if (lineas == null) {
+            return null;   // el error queda en almacenamiento.getError()
+        }
+        return String.join("\n", lineas);
+    }
+
+    @Override
+    public boolean abrirArchivo(String nombre) {
+        return almacenamiento.existeArchivo(nombre);
+    }
+
+    @Override
+    public boolean eliminarArchivo(String nombre) {
+        boolean exito = almacenamiento.eliminarArchivo(nombre);
+        actualizarTablaAlmacenamiento();
+        return exito;
+    }
+
+    @Override
+    public void terminarPrograma(BCP proceso) {
+        if (proceso != null) {
+            finalizarProceso(proceso, "Programa terminado.",
+                    "Ejecución completa", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    @Override
+    public void abortarProceso(BCP proceso, String mensaje) {
+        String texto = (mensaje != null) ? mensaje : almacenamiento.getError();
+        finalizarProceso(proceso, texto, "Error de archivo (INT 21H)", JOptionPane.ERROR_MESSAGE);
+    }
+
+    
+
+
+    /** Ejecuta una sola instrucción y refresca la tabla de CPU y BCP. */
     private void ejecutarUnPaso() {
-        // El PC es una dirección absoluta de memoria: la instrucción se lee de ahí,
-        // no de la lista "instrucciones" (que solo guarda el último programa cargado)
+        // El PC es una dirección absoluta de memoria: la instrucción se lee de ahí
         int direccionActual = bcp.getPc();
         String instruccionActual = memoria.leerMemoria(direccionActual);
 
@@ -633,56 +823,156 @@ public class Principal extends javax.swing.JFrame {
 
         bcp.setInstruccion(instruccionActual);
 
-        // Ejecutar la instrucción
+        // Ejecutar la instrucción (si es la de fin de programa, la CPU llama a terminarPrograma)
         cpu.ejecutarInstruccion(instruccionActual, bcp);
 
+        // Si el programa terminó con su interrupción, terminarPrograma ya liberó el proceso
+        if ("FINALIZADO".equals(bcp.getEstado())) {
+            continuarFlujo();
+            return;
+        }
+
+        sincronizarRegistrosBcp();
         // Avanzar al siguiente PC
         bcp.avanzarPc();
 
         // Tiempo empleado desde que el proceso empezó a ejecutarse
         bcp.setTiempoEjecucion(Duration.between(bcp.getTiempoInicio(), LocalDateTime.now()).toMillis());
         memoria.actualizarBCP(bcp);
+
         // Actualizar las tablas
         actualizarTablaRegistros();
         actualizarTablaBcp();
         actualizarTablaMemoria();
 
-       
+        // Si el PC llegó al final sin interrupción de fin de programa, es un error
+        verificarFinDePrograma();
     }
 
-    /** Deshabilita los botones de ejecución y avisa cuando ya no quedan instrucciones. */
-    private void finalizarSiTermino() {
-        if (bcp != null && bcp.getPc() >= bcp.getInicio() + bcp.getTamano()) {
-            jButton2.setEnabled(false);
-            jButton3.setEnabled(false);
-            bcp.setEstado("FINALIZADO");
-            bcp.setCpu(null);
-            actualizarTablaBcp();
-            JOptionPane.showMessageDialog(this, "Programa terminado.",
-                    "Ejecución completa", JOptionPane.INFORMATION_MESSAGE);
-            memoria.eliminarProceso(bcp);
-            actualizarTablaMemoria();
-            listaProcesos.remove(bcp);
-            actualizarTablaProcesos();
-            reiniciarTablaBcp();
+    /**
+     * Si el PC llegó al final del programa y nunca se ejecutó la interrupción de fin
+     * de programa, el proceso termina con error.
+     */
+    private void verificarFinDePrograma() {
+        if (bcp != null && !bcp.getEstado().equals("FINALIZADO")
+                && bcp.getPc() >= bcp.getInicio() + bcp.getTamano()) {
+            finalizarProceso(bcp,
+                    "El programa llegó a su última línea sin una interrupción de fin de programa.",
+                    "Error de fin de programa", JOptionPane.ERROR_MESSAGE);
+            continuarFlujo();
         }
+    }
+
+    /** Saca un proceso del sistema: lo marca FINALIZADO, libera su memoria y lo quita de la Lista de Procesos. */
+    private void finalizarProceso(BCP proceso, String mensaje, String titulo, int tipoMensaje) {
+        proceso.setEstado("FINALIZADO");
+        proceso.setCpu(null);
+        actualizarTablaBcp();   // muestra el estado FINALIZADO antes del aviso
+        JOptionPane.showMessageDialog(this, mensaje, titulo, tipoMensaje);
+
+        // El BCP anterior deja de apuntar al proceso que sale
+        int idx = listaProcesos.indexOf(proceso);
+        if (idx > 0) {
+            BCP anterior = listaProcesos.get(idx - 1);
+            anterior.setSiguiente(proceso.getSiguiente());
+            memoria.actualizarBCP(anterior);
+        }
+
+        memoria.eliminarProceso(proceso);
+        actualizarTablaMemoria();
+        listaProcesos.remove(proceso);
+        sincronizarListas();
+        actualizarTablaProcesos();
+        reiniciarTablaBcp();
     }
 
     /** Planificador de trabajos: mueve un BCP de la Lista de Trabajos a la Lista de Procesos. */
     private void admitirTrabajo(BCP trabajo) {
-        listaTrabajos.remove(trabajo);
-        trabajo.setEstado("LISTO");
-
-        // 1. Guardar el nuevo BCP primero, para que ya tenga su dirección en memoria
-        memoria.guardarBCP(trabajo);
-
-        // 2. El último BCP apunta al nuevo y se reescribe su copia en memoria
-        if (!listaProcesos.isEmpty()) {
-            BCP anterior = listaProcesos.get(listaProcesos.size() - 1);
-            anterior.setSiguiente(trabajo);
+        // 1. Salir de la Lista de Trabajos: el anterior salta al siguiente
+        int idx = listaTrabajos.indexOf(trabajo);
+        if (idx > 0) {
+            BCP anterior = listaTrabajos.get(idx - 1);
+            anterior.setSiguiente(trabajo.getSiguiente());
             memoria.actualizarBCP(anterior);
         }
+        listaTrabajos.remove(trabajo);
+
+        // 2. Entrar al final de la Lista de Procesos
+        trabajo.setSiguiente(null);
+        trabajo.setEstado("LISTO");
+        if (!listaProcesos.isEmpty()) {
+            BCP ultimo = listaProcesos.get(listaProcesos.size() - 1);
+            ultimo.setSiguiente(trabajo);
+            memoria.actualizarBCP(ultimo);
+        }
         listaProcesos.add(trabajo);
+
+        // 3. Reescribir su BCP (cambió estado, base, PC y siguiente) y los punteros
+        memoria.actualizarBCP(trabajo);
+        sincronizarListas();
+    }
+
+        /** Planificador de trabajos: lee cada trabajo desde Almacenamiento y lo admite si cabe en memoria. */
+    private void planificarTrabajos() {
+        for (BCP trabajo : new ArrayList<>(listaTrabajos)) {
+            if (listaProcesos.size() >= 5) {
+                break;
+            }
+            ArrayList<String> programa = almacenamiento.leerArchivo(trabajo.getNombreArchivo());
+            if (programa == null) {
+                continue;   // el archivo ya no está en Almacenamiento
+            }
+            // Para entrar a la Lista de Procesos el BCP debe tener su copia en el kernel
+            if (memoria.getPosicionBCP(trabajo.getPid()) == -1) {
+                if (memoria.getTamanoKernelSinUso() < 22) {
+                    break;   // sin espacio en el kernel, el trabajo sigue esperando
+                }
+                memoria.guardarBCP(trabajo);
+            }
+            int base = memoria.getUltimaPosicionInstruccion();
+            memoria.asignarInstrucciones(programa);
+            if (memoria.getError() != null) {
+                break;  
+            }
+
+            trabajo.setInicio(base);
+            trabajo.setPc(base);
+            admitirTrabajo(trabajo);   // lo saca de listaTrabajos y lo pasa a listaProcesos
+        }
+        actualizarTablaTrabajos();
+        actualizarTablaProcesos();
+    }
+
+    /** Pone en la CPU el siguiente proceso LISTO de la Lista de Procesos (o deja la CPU libre). */
+    private void despacharSiguiente() {
+        bcp = null;
+        for (BCP proceso : listaProcesos) {
+            if ("LISTO".equals(proceso.getEstado())) {
+                bcp = proceso;
+                break;
+            }
+        }
+        if (bcp != null) {
+            cpu = new CPU(memoria, this);   // registros limpios para el nuevo proceso
+            reiniciarTablaCpu();
+            actualizarTablaRegistros();
+        }
+        actualizarBotones();
+    }
+
+    /** Se llama cuando un proceso sale del sistema: admite trabajos y despacha el siguiente. */
+    private void continuarFlujo() {
+        bcp = null;
+        planificarTrabajos();
+        actualizarTablaMemoria();
+        despacharSiguiente();
+    }
+
+    /** Los botones de ejecución solo se habilitan si hay un proceso en la CPU. */
+       private void actualizarBotones() {
+        boolean habilitar = bcp != null && !ejecutandoTodo;
+        jButton2.setEnabled(habilitar);
+        jButton3.setEnabled(habilitar);
     }
 
     
@@ -695,14 +985,15 @@ public class Principal extends javax.swing.JFrame {
         DefaultTableModel modeloCpu = (DefaultTableModel) jTable3.getModel();
         modeloCpu.setValueAt(String.valueOf(cpu.getAccumulator()), 0, 1);
         modeloCpu.setValueAt(String.valueOf(cpu.getAx()), 1, 1);
-        modeloCpu.setValueAt(String.valueOf(cpu.getBx()), 2, 1);
-        modeloCpu.setValueAt(String.valueOf(cpu.getCx()), 3, 1);
-        modeloCpu.setValueAt(String.valueOf(cpu.getDx()), 4, 1);
+        modeloCpu.setValueAt(cpu.getAl(), 2, 1);
+        modeloCpu.setValueAt(cpu.getAh(), 3, 1);
+        modeloCpu.setValueAt(String.valueOf(cpu.getBx()), 4, 1);
+        modeloCpu.setValueAt(String.valueOf(cpu.getCx()), 5, 1);
+        modeloCpu.setValueAt(cpu.getDx(), 6, 1);
 
-        // IR y PC del proceso que está en la CPU
         if (bcp != null) {
-            modeloCpu.setValueAt(bcp.getInstruccion(), 5, 1);
-            modeloCpu.setValueAt(String.valueOf(bcp.getPc()), 6, 1);
+            modeloCpu.setValueAt(bcp.getInstruccion(), 7, 1);
+            modeloCpu.setValueAt(String.valueOf(bcp.getPc()), 8, 1);
         }
 
         actualizarTablaBcp();
@@ -730,7 +1021,8 @@ public class Principal extends javax.swing.JFrame {
         modeloBcp.setValueAt(bcp.getTiempoInicio() == null
                 ? "-" : bcp.getTiempoInicio().format(FORMATO_HORA), 11, 1);
         modeloBcp.setValueAt(bcp.getTiempoEjecucion() + " ms", 12, 1);
-        modeloBcp.setValueAt("Ninguno", 13, 1);
+                modeloBcp.setValueAt(bcp.getArchivos().isEmpty()
+                ? "Ninguno" : String.join(", ", bcp.getArchivos()), 13, 1);
         modeloBcp.setValueAt(bcp.getSiguiente() == null
                 ? "null" : "PID " + bcp.getSiguiente().getPid(), 14, 1);
         modeloBcp.setValueAt(String.valueOf(bcp.getInicio()), 15, 1);
@@ -798,10 +1090,17 @@ public class Principal extends javax.swing.JFrame {
     }
 
     /** Crea un Almacenamiento nuevo del tamaño indicado en el spinner y lo muestra en jTable7. */
-    private void crearAlmacenamiento() {
+     private void crearAlmacenamiento() {
         int tamano = (Integer) jSpinner2.getValue();
         almacenamiento = new Almacenamiento(tamano);
+        listaTrabajos.clear();
+        actualizarTablaTrabajos();
         actualizarTablaAlmacenamiento();
+    }
+
+    /** Refleja las dos listas en los punteros del kernel (posiciones 0 a 3). */
+    private void sincronizarListas() {
+        memoria.actualizarPunteros(listaTrabajos, listaProcesos);
     }
 
     /** Deja jTable3 en su estado inicial: registros en 0, IR vacío y PC en 0. */
@@ -810,7 +1109,7 @@ public class Principal extends javax.swing.JFrame {
         for (int fila = 0; fila < modeloCpu.getRowCount(); fila++) {
             modeloCpu.setValueAt("0", fila, 1);
         }
-        modeloCpu.setValueAt(null, 5, 1);
+        modeloCpu.setValueAt(null, 7, 1);   // IR
     }
 
     /** Deja jTable4 en su estado inicial: sin proceso cargado. */
@@ -821,6 +1120,15 @@ public class Principal extends javax.swing.JFrame {
         }
         modeloBcp.setValueAt("0", 1, 1);
         modeloBcp.setValueAt("NUEVO", 2, 1);
+    }
+
+    /** Copia los registros de la CPU al BCP del proceso en ejecución. */
+    private void sincronizarRegistrosBcp() {
+        bcp.setAc(String.valueOf(cpu.getAccumulator()));
+        bcp.setAx(String.valueOf(cpu.getAx()));
+        bcp.setBx(String.valueOf(cpu.getBx()));
+        bcp.setCx(String.valueOf(cpu.getCx()));
+        bcp.setDx(cpu.getDx());
     }
 
     /** Refleja el contenido actual del objeto Memoria en jTable2. */
@@ -877,6 +1185,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -884,12 +1193,15 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPane7;
+    private javax.swing.JScrollPane jScrollPane8;
     private javax.swing.JSpinner jSpinner1;
     private javax.swing.JSpinner jSpinner2;
     private javax.swing.JTable jTable2;
@@ -898,6 +1210,8 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JTable jTable5;
     private javax.swing.JTable jTable6;
     private javax.swing.JTable jTable7;
+    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JTextArea jTextArea2;
     // End of variables declaration//GEN-END:variables
 
    

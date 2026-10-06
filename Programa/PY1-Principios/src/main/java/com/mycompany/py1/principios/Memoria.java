@@ -50,10 +50,7 @@ public class Memoria {
     }
     // Asigna las instrucciones del programa a la memoria de usuario
     public void asignarInstrucciones(ArrayList<String> instrucciones) {
-        if (getTamanoKernelSinUso() < 22) {
-            error = "No se puede cargar el programa, no hay suficiente espacio en el kernel.";
-            return;
-        }
+        
         error = null;
         int ultimaPosicion = getUltimaPosicionInstruccion();
 
@@ -122,7 +119,7 @@ public class Memoria {
     }
     
     private int getUltimaPosicionKernel() {
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < inicioMemoriaUsuario; i++) {
             if (memoria.get(i).getProposito().equals("Sin propósito")) {
                 return i;
             }
@@ -163,19 +160,19 @@ public class Memoria {
                         this.guardarValor(posicion + i, bcp.getDx(), "Sistema Operativo", "DX");
                         break;
                     case 9:
-                        this.guardarValor(posicion + i, String.valueOf(bcp.getPila().indexOf(0)), "Sistema Operativo", "Pila[0]");
+                        this.guardarValor(posicion + i, valorPila(bcp, 0), "Sistema Operativo", "Pila[0]");
                         break;
                     case 10:
-                        this.guardarValor(posicion + i, String.valueOf(bcp.getPila().indexOf(1)), "Sistema Operativo", "Pila[1]");
+                        this.guardarValor(posicion + i, valorPila(bcp, 1), "Sistema Operativo", "Pila[1]");
                         break;
                     case 11:
-                        this.guardarValor(posicion + i, String.valueOf(bcp.getPila().indexOf(2)), "Sistema Operativo", "Pila[2]");
+                        this.guardarValor(posicion + i, valorPila(bcp, 2), "Sistema Operativo", "Pila[2]");
                         break;
                     case 12:
-                        this.guardarValor(posicion + i, String.valueOf(bcp.getPila().indexOf(3)), "Sistema Operativo", "Pila[3]");
+                        this.guardarValor(posicion + i, valorPila(bcp, 3), "Sistema Operativo", "Pila[3]");
                         break;
                     case 13:
-                        this.guardarValor(posicion + i, String.valueOf(bcp.getPila().indexOf(4)), "Sistema Operativo", "Pila[4]");
+                        this.guardarValor(posicion + i, valorPila(bcp, 4), "Sistema Operativo", "Pila[4]");
                         break;
                     case 14:
                         if (bcp.getCpu() != null) {
@@ -256,19 +253,19 @@ public class Memoria {
                         this.guardarValor(posicion + i, bcp.getDx(), "Sistema Operativo", "DX");
                         break;
                     case 9:
-                        this.guardarValor(posicion + i, String.valueOf(bcp.getPila().indexOf(0)), "Sistema Operativo", "Pila[0]");
+                        this.guardarValor(posicion + i, valorPila(bcp, 0), "Sistema Operativo", "Pila[0]");
                         break;
                     case 10:
-                        this.guardarValor(posicion + i, String.valueOf(bcp.getPila().indexOf(1)), "Sistema Operativo", "Pila[1]");
+                        this.guardarValor(posicion + i, valorPila(bcp, 1), "Sistema Operativo", "Pila[1]");
                         break;
                     case 11:
-                        this.guardarValor(posicion + i, String.valueOf(bcp.getPila().indexOf(2)), "Sistema Operativo", "Pila[2]");
+                        this.guardarValor(posicion + i, valorPila(bcp, 2), "Sistema Operativo", "Pila[2]");
                         break;
                     case 12:
-                        this.guardarValor(posicion + i, String.valueOf(bcp.getPila().indexOf(3)), "Sistema Operativo", "Pila[3]");
+                        this.guardarValor(posicion + i, valorPila(bcp, 3), "Sistema Operativo", "Pila[3]");
                         break;
                     case 13:
-                        this.guardarValor(posicion + i, String.valueOf(bcp.getPila().indexOf(4)), "Sistema Operativo", "Pila[4]");
+                        this.guardarValor(posicion + i, valorPila(bcp, 4), "Sistema Operativo", "Pila[4]");
                         break;
                     case 14:
                         if (bcp.getCpu() != null) {
@@ -321,7 +318,6 @@ public class Memoria {
             this.guardarValor(i, "0", "Usuario", "Sin propósito");
         }
     }
-
     public void eliminarBCP(int pid) {
         int posicion = -1;
         for(int i = 0; i < inicioMemoriaUsuario; i++) {
@@ -337,5 +333,37 @@ public class Memoria {
         } else {
             error = "No se encontró el BCP con ID " + pid + " en la memoria del kernel para eliminarlo.";
         }
+    }
+
+    /** Dirección en memoria donde empieza el BCP con ese PID, o -1 si no está. */
+public int getPosicionBCP(int pid) {
+    for (int i = 0; i < inicioMemoriaUsuario; i++) {
+        if (memoria.get(i).getProposito().equals("ID BCP")
+                && memoria.get(i).getValor().equals(String.valueOf(pid))) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+    /** Escribe en las posiciones 0 a 3 el inicio y el fin de cada lista (-1 si está vacía). */
+    public void actualizarPunteros(ArrayList<BCP> trabajos, ArrayList<BCP> procesos) {
+        escribirPunteros(0, "Puntero Lista de Trabajo", "Fin Lista de Trabajo", trabajos);
+        escribirPunteros(2, "Puntero Lista de Procesos", "Fin Lista de Procesos", procesos);
+    }
+
+    private void escribirPunteros(int pos, String propIni, String propFin, ArrayList<BCP> lista) {
+        String ini = "-1";
+        String fin = "-1";
+        if (!lista.isEmpty()) {
+            ini = String.valueOf(getPosicionBCP(lista.get(0).getPid()));
+            fin = String.valueOf(getPosicionBCP(lista.get(lista.size() - 1).getPid()));
+        }
+        guardarValor(pos, ini, "Sistema Operativo", propIni);
+        guardarValor(pos + 1, fin, "Sistema Operativo", propFin);
+    }
+
+    private String valorPila(BCP bcp, int i) {
+        return i < bcp.getPila().size() ? bcp.getPila().get(i) : "0";
     }
 }

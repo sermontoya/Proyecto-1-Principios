@@ -289,9 +289,16 @@ public class Almacenamiento {
         }
     }
 
-    // ---------------------------------------------------------------
-    // Utilidades
-    // ---------------------------------------------------------------
+    /** Verifica que el archivo exista en el índice
+     *  si no, deja el mensaje en error. */
+    public boolean existeArchivo(String nombre) {
+        error = null;
+        if (buscarIndice(nombre) == -1) {
+            error = "No existe un archivo llamado " + nombre + ".";
+            return false;
+        }
+        return true;
+    }
 
     private void guardarValor(int direccion, String valor, String zona, String proposito) {
         almacenamiento.get(direccion).setValor(valor);
