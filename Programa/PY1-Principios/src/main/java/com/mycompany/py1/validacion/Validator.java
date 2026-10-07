@@ -1,4 +1,4 @@
-package com.mycompany.py1.principios;
+package com.mycompany.py1.validacion;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

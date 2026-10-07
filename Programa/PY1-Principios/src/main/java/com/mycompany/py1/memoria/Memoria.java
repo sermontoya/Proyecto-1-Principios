@@ -2,8 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.py1.principios;
+package com.mycompany.py1.memoria;
 
+import com.mycompany.py1.nucleo.BCP;
 import java.util.ArrayList;
 
 /**
@@ -356,8 +357,9 @@ public int getPosicionBCP(int pid) {
         String ini = "-1";
         String fin = "-1";
         if (!lista.isEmpty()) {
-            ini = String.valueOf(getPosicionBCP(lista.get(0).getPid()));
-            fin = String.valueOf(getPosicionBCP(lista.get(lista.size() - 1).getPid()));
+            // Referencia lógica: el PID. No depende de que el BCP tenga copia en el kernel
+            ini = String.valueOf(lista.get(0).getPid());
+            fin = String.valueOf(lista.get(lista.size() - 1).getPid());
         }
         guardarValor(pos, ini, "Sistema Operativo", propIni);
         guardarValor(pos + 1, fin, "Sistema Operativo", propFin);

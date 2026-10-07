@@ -2,8 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.py1.principios;
+package com.mycompany.py1.disco;
 
+import com.mycompany.py1.memoria.Posicion;
 import java.util.ArrayList;
 
 /**

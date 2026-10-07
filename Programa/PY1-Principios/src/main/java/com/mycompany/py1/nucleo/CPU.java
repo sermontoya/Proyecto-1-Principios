@@ -2,8 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.py1.principios;
+package com.mycompany.py1.nucleo;
 
+import com.mycompany.py1.nucleo.BCP;
+import com.mycompany.py1.memoria.Memoria;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,10 +70,16 @@ public class CPU {
         String[] params;
         String valor = "";
         if (operacion.equals("PARAM")) {
-                params = Arrays.copyOfRange(partes, 1, partes.length);
-                for (String param : params) {
-                    bcp.pushPila(param);
-                }
+            params = Arrays.copyOfRange(partes, 1, partes.length);
+            if (params.length > bcp.espacioPila()) {
+                interrupcion.abortarProceso(bcp, "Desbordamiento de pila en el proceso PID " + bcp.getPid()
+                        + ": PARAM agrega " + params.length + " valor(es) y solo caben "
+                        + bcp.espacioPila() + " más (capacidad " + BCP.TAM_PILA + ").");
+                return;
+            }
+            for (String param : params) {
+                bcp.pushPila(param);
+            }
         }
         else if (partes.length > 1) {
             registro = partes[1];
@@ -398,24 +406,31 @@ public class CPU {
 
     // Modifica el PC del BCP (el que usa Principal). Principal le suma 1 después de ejecutar.
     private void saltar(int desplazamiento, BCP bcp) {
-        int destino = bcp.getPc() + 1 + desplazamiento;   // dónde terminará el PC
-        int fin = bcp.getInicio() + bcp.getTamano();
-        if (destino < bcp.getInicio() || destino > fin) {
-            interrupcion.imprimir("Salto fuera del programa (destino " + destino + ").");
+        int destino = bcp.getPc() + 1 + desplazamiento;          // dónde terminará el PC
+        int ultima = bcp.getInicio() + bcp.getTamano() - 1;      // última instrucción del proceso
+        if (destino < bcp.getInicio() || destino > ultima) {
+            interrupcion.abortarProceso(bcp, "Salto fuera del programa en el proceso PID " + bcp.getPid()
+                    + ": el PC iría a la posición " + destino
+                    + ", y el programa solo abarca de la " + bcp.getInicio() + " a la " + ultima + ".");
             return;
         }
         bcp.setPc(bcp.getPc() + desplazamiento);
     }
 
     private void pushAlStack(String registro, BCP bcp) {
-        bcp.pushPila(String.valueOf(getRegistro(registro)));
+        if (!bcp.pushPila(String.valueOf(getRegistro(registro)))) {
+            interrupcion.abortarProceso(bcp, "Desbordamiento de pila en el proceso PID " + bcp.getPid()
+                    + ": la pila ya tiene " + BCP.TAM_PILA + " elementos y PUSH intentó agregar otro.");
+        }
     }
 
     private void popDelStack(String registro, BCP bcp) {
         String valor = bcp.popPila();
-        if (valor != null) {
-            moverValor(registro, valor);
+        if (valor == null) {
+            interrupcion.abortarProceso(bcp, "Pila vacía en el proceso PID " + bcp.getPid() + ": POP sin elementos.");
+            return;
         }
+        moverValor(registro, valor);
     }
 
     private void imprimir() {
@@ -431,7 +446,7 @@ public class CPU {
             try {
                 int valor = Integer.parseInt(input);
                 if (valor < 0 || valor > 255) {
-                    interrupcion.imprimir("Entrada inválida. Por favor, ingrese un número entero no negativo.");
+                    interrupcion.imprimir("Entrada inválida. Por favor, ingrese un número entero en el rango de 0 a 255.");
                     continue;
                 }
                 valido = true;

@@ -1,4 +1,4 @@
-package com.mycompany.py1.principios;
+package com.mycompany.py1.nucleo;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,7 +29,12 @@ public class BCP {
     private int tamano;
     private int prioridad;
     private String nombreArchivo;   // archivo en Almacenamiento del que sale el programa
+    private int ciclosRestantes = 0;   // 0 = no hay instrucción a medias
+    private int ciclosTotales = 0;
+    private LocalDateTime tiempoFin;
+    public static final int TAM_PILA = 5;
 
+    
     
 
     public BCP(int pid, int pc, String estado, String instruccion, int inicio, int tamano, int prioridad) {
@@ -148,11 +153,12 @@ public class BCP {
         this.instruccion = instruccion;
     }
 
-    public void pushPila(String valor) {
-        if (pila.size() >= 5) {
-            return; // No se puede agregar más elementos a la pila
+    public boolean pushPila(String valor) {
+        if (pila.size() >= TAM_PILA) {
+            return false;
         }
         pila.push(valor);
+        return true;
     }
 
     public String popPila() {
@@ -199,6 +205,14 @@ public void cerrarArchivo(String nombre) {
         this.tiempoInicio = LocalDateTime.now();
     }
 
+    public int getCiclosRestantes() { return ciclosRestantes; }
+
+    public void setCiclosRestantes(int c) { this.ciclosRestantes = c; }
+
+    public int getCiclosTotales() { return ciclosTotales; }
+
+    public void setCiclosTotales(int c) { this.ciclosTotales = c; }
+
 
     public String getNombreArchivo() { return nombreArchivo; }
 
@@ -206,6 +220,20 @@ public void cerrarArchivo(String nombre) {
 
     // La base puede cambiar entre que el trabajo se crea y que se admite en memoria
     public void setInicio(int inicio) { this.inicio = inicio; }
+
+    
+
+    public LocalDateTime getTiempoFin() {
+        return tiempoFin;
+    }
+
+    public void setTiempoFin(LocalDateTime tiempoFin) {
+        this.tiempoFin = tiempoFin;
+    }
+
+    public int espacioPila() {
+        return TAM_PILA - pila.size();
+    }
 
 
 }
